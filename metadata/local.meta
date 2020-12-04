@@ -1,0 +1,42 @@
+[app/ui]
+version = 8.1.0
+modtime = 1606119850.350343000
+
+[app/launcher]
+version = 8.1.0
+modtime = 1606119850.352801000
+
+[lookups/soar_cr_names.csv]
+owner = admin
+version = 8.1.0
+modtime = 1606332588.501628000
+
+[transforms/soar_cr_names]
+access = read : [ * ], write : [ admin ]
+export = system
+owner = admin
+version = 8.1.0
+modtime = 1606120074.162488000
+
+[savedsearches/SOAR%20Notable%20Forwarding]
+access = read : [ * ], write : [ admin ]
+export = system
+owner = admin
+version = 8.1.0
+modtime = 1606214396.775117000
+
+[savedsearches/Notable%20from%20ES]
+access = read : [ * ], write : [ admin, power ]
+export = system
+owner = admin
+version = 8.1.0
+modtime = 1606305511.945793000
+
+[views/welcome]
+owner = admin
+version = 8.1.0
+modtime = 1606332489.078079000
+
+[nav/default]
+version = 8.1.0
+modtime = 1606332392.616935000

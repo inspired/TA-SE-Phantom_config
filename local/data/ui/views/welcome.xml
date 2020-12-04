@@ -1,0 +1,122 @@
+<dashboard>
+  <label>Welcome</label>
+  <row>
+    <panel>
+      <html>
+      <h1>This TA serves as an example of how to send Notable events to Phantom with dynamic inputs</h1>
+      <p>It's been tested on:</p>
+      <ul>
+        <li>Splunk 8.1.0</li>
+        <li>ES 6.4.0</li>
+        <li>Phantom Add-On 4.0.10</li>
+        <li>Phantom 4.9.39220</li>
+      </ul>
+      <p>Questions: <a href="mailto:mbjerkeland@splunk.com">mbjerkeland@splunk.com</a>
+        </p>
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2>Step 1: Patch modalert_phantom_forward_helper.py</h2>
+        <pre>
+41,42c41,42
+&lt;
+&lt;     container['name'] = search_name
+---
+&gt;
+&gt;     container['name'] = get_safe(result, 'source', 'Ad hoc search result')
+46,47d45
+&lt;     if not container['name']:
+&lt;         container['name'] = get_safe(result, 'source', 'Ad hoc search result')
+        </pre>
+      </html>
+    </panel>
+    <panel>
+      <html>
+        <h2>Step 2: Create a CSV file called soar_cr_names.csv and corresponding lookup table definition soar_cr_names</h2>
+        <pre>
+search_name,label
+ESCU - Detect ARP Poisoning - Rule,notable
+ESCU - Batch File Write to System32 - Rule,notable
+ESCU - Detect Rogue DHCP Server - Rule,notable
+ESCU - Uncommon Processes On Endpoint - Rule,notable
+        </pre>
+      </html>
+    </panel>
+    </row>
+    <row>
+    <panel>
+      <html>
+        <h2>Step 3: Create the following saved search in savedsearches.conf</h2>
+        <pre>
+[Notable from ES]
+action.keyindicator.invert = 0
+action.makestreams.param.verbose = 0
+action.nbtstat.param.verbose = 0
+action.notable.param.verbose = 0
+action.nslookup.param.verbose = 0
+action.ping.param.verbose = 0
+action.risk.forceCsvResults = 1
+action.risk.param.verbose = 0
+action.send2uba.param.verbose = 0
+action.sendtophantom = 1
+action.sendtophantom.param._cam_workers = ["local"]
+action.sendtophantom.param.label = $result._es_to_phantom_label$
+action.sendtophantom.param.phantom_server = Mortens Phantom-server
+action.sendtophantom.param.sensitivity = $result._es_to_phantom_sensitivity$
+action.sendtophantom.param.severity = $result._es_to_phantom_severity$
+action.threat_add.param.verbose = 0
+alert.digest_mode = 0
+alert.severity = 1
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = * * * * *
+description = Send Notables to Phantom
+dispatch.earliest_time = -2m
+dispatch.latest_time = -1m
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = TA-SE-Phantom_config
+request.ui_dispatch_view = search
+search = `notable` | search [ |inputlookup soar_cr_names.csv | fields search_name ] | expandtoken ``` This search will look for specified notable names in the soar_cr_names.csv file, expand them and enrich with info in order to send them to Phantom. All fields including event_id will be forwarded over unless they are excluded below. Make sure you schedule this search PER-EVENT (alert.digest_mode = 0), Not Once ```| eval source = search_name  ```Use the search_name field as the title of the Container```| eval _es_to_phantom_severity = severity ```Get the severity from the notable```| eval _es_to_phantom_sensitivity = "green" ```Hard code the sensitivity. Room for improvement here```| spath input=annotations | rename *{} AS * ```Make the annotations JSON separate fields```| eval cis20=mvjoin(cis20,","), kill_chain_phases=mvjoin(kill_chain_phases,","),  mitre_attack=mvjoin(mitre_attack,","), nist=mvjoin(nist,",") ```Make multi-value fields single value```| fields - annotations| lookup soar_cr_names search_name OUTPUT label AS _es_to_phantom_label ```Get the label we want to use from the lookup```| eval _es_to_phantom_label=coalesce(_es_to_phantom_label,"events") ```Make sure we always have a value for our label```
+        </pre>
+      </html>
+    </panel>
+    <panel>
+      <html>
+        <h2>Step 4: Make sure permissions are set correctly</h2>
+        <ul>
+          <li>soar_cr_names.csv Lookup File: All apps</li>
+          <li>soar_cr_names Lookup Table Definition: All apps</li>
+          <li>Notable from ES: All apps</li>
+        </ul>
+        
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <a href="/app/lookup_editor/lookup_edit?owner=nobody&amp;namespace=TA-SE-Phantom_config&amp;lookup=soar_cr_names.csv&amp;type=csv">Edit Correlation Searches to be Forwarded</a>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Correlation Searches that are Forwarded</title>
+        <search>
+          <query>| inputlookup soar_cr_names
+| table search_name label *</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

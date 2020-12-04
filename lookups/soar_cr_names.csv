@@ -1,0 +1,7 @@
+search_name,label
+ESCU - Detect ARP Poisoning - RuleDISABLED,notable
+ESCU - Batch File Write to System32 - Rule,notable
+ESCU - Detect Rogue DHCP Server - RuleDISABLED,notable
+ESCU - Uncommon Processes On Endpoint - Rule,notable
+Access - Excessive Failed Logins - Rule,notable
+ESCU - Detect IPv6 Network Infrastructure Threats - RuleDISABLED,notable
